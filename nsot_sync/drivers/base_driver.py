@@ -2,7 +2,7 @@ from __future__ import print_function
 import json
 from abc import abstractmethod
 from pynsot.client import get_api_client
-from nsot_sync.common import error, info
+from nsot_sync.common import error, success
 
 
 class BaseDriver(object):
@@ -57,43 +57,75 @@ class BaseDriver(object):
         '''Takes output of .get_resources to create/update as needed'''
         resources = self.get_resources()
 
-        self.handle_networks(resources['networks'])
-        self.handle_interfaces(resources['interfaces'])
-        self.handle_devices(resources['devices'])
+        # Create resources, interfaces last so networks and device exist to
+        # attach to
+        # [self.handle_device(device) for device in resources['devices']]
+        [self.handle_network(network) for network in resources['networks']]
+        # [self.handle_interface(interface)
+        #  for interface in resources['interfaces']]
 
-    def handle_networks(self, networks):
+    def handle_network(self, network):
+        '''Take a network and create/update in NSoT'''
+
+        # Because of issue #36 and #118 upstream NSoT, as of this comment
+        # resources are not round-tripable. This means that "cidr" is a
+        # required field for creating a network resource, but not what is used
+        # to represent it
+        #
+        # To support the round-tripable future, this function will take a
+        # future-proofed network_addriss+length resource and add cidr to it
+        # when creating
+        c = self.client
+        cidr = '%s/%s' % (network['network_address'], network['prefix_length'])
+        network['cidr'] = cidr
+        try:
+            existing = c.networks.query.get(**network)['data']['networks']
+        except Exception as e:
+            self.handle_pynsot_err(e)
+
+        if existing:
+            network['id'] = existing[0]['id']
+            try:
+                c.networks.put(network)
+                success('%s updated!' % cidr)
+            except Exception as e:
+                self.handle_pynsot_err(e, cidr)
+        else:
+            try:
+                c.networks.post(network)
+                success('%s created!' % cidr)
+            except Exception as e:
+                self.handle_pynsot_err(e, cidr)
+
+    def handle_interface(self, interface):
         pass
 
-    def handle_interfaces(self, interfaces):
-        pass
-
-    def handle_devices(self, devices):
+    def handle_device(self, device):
         pass
 
     def ensure_attrs(self):
         '''Ensure that attributes from REQUIRED_ATTRS exist, don't overwrite'''
+        c = self.client
         for attr in self.REQUIRED_ATTRS:
             # Loop through each attribute to create. Once #142 is fixed, this
             # might be able to be done in bulk
             attr.update({'site_id': self.site_id})
+            try:
+                existing = c.attributes.get(**attr)['data']['attributes']
+            except Exception as e:
+                self.handle_pynsot_err(e)
 
             try:
-                self.client.attributes.post(attr)
-            except Exception as e:
-                if e.response.status_code == 500:
-                    # Because of NSoT issue #142, duplicate resources return
-                    # HTTP 500. Seems to be because the error isn't returned as
-                    # serializable JSON on the backend.
-                    #
-                    # https://github.com/dropbox/nsot/issues/142
-                    info(
-                        'Adding attribute "%s" returned 500, likely a dup' %
-                        (attr['name'])
-                    )
+                if existing:  # Like in the docstring, don't overwrite
                     pass
                 else:
-                    self.handle_pynsot_err(e)
+                    self.client.attributes.post(attr)
+                    success('%s created!' % attr['name'])
+            except Exception as e:
+                self.handle_pynsot_err(e)
 
-    def handle_pynsot_err(self, e):
+    def handle_pynsot_err(self, e, desc=''):
         content = json.dumps(e.content)
+        if desc:
+            content = '%s: %s' % (desc, content)
         error(content)

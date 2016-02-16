@@ -8,3 +8,6 @@ def error(msg):
 
 def info(msg):
     click.secho('INFO: %s' % msg, fg='blue', err=True)
+
+def success(msg):
+    click.secho('SUCCESS: ' % msg, fg='green', err=True)

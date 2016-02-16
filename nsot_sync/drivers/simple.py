@@ -8,13 +8,27 @@ class SimpleDriver(BaseDriver):
     '''Simple driver
 
     This driver will collect network information via netifaces on the localhost
-    then generate NSoT resources for them and the host. No extra attributes
-    will be created/applied.
+    then generate NSoT resources for them and the host. The only attribute
+    created and applied is 'desc'.
 
     If you're writing a driver to supplement just attributes, consider
     subclassing this class to get the localhost network data.
     '''
 
+    REQUIRED_ATTRS = [
+        {
+            'name': 'desc',
+            'resource_name': 'Device',
+            'description': 'Description',
+            'display': True,
+        },
+        {
+            'name': 'desc',
+            'resource_name': 'Network',
+            'description': 'Description',
+            'display': True,
+        }
+    ]
     INTF_IGNORE_PREFIXES = [
         'lo',
         'docker',
@@ -86,7 +100,9 @@ class SimpleDriver(BaseDriver):
                         'site_id': self.cli_params['SITE_ID'],
                         'state': 'assigned',
                         'prefix_length': length,
-                        'attributes': {},
+                        'attributes': {
+                            'desc': '%s on %s' % (ifname, platform.node()),
+                        }
                     }
                     networks.append(network_resource)
 
