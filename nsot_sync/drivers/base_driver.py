@@ -53,6 +53,23 @@ class BaseDriver(object):
     def get_resources(self):
         pass
 
+    def handle_resources(self):
+        '''Takes output of .get_resources to create/update as needed'''
+        resources = self.get_resources()
+
+        self.handle_networks(resources['networks'])
+        self.handle_interfaces(resources['interfaces'])
+        self.handle_devices(resources['devices'])
+
+    def handle_networks(self, networks):
+        pass
+
+    def handle_interfaces(self, interfaces):
+        pass
+
+    def handle_devices(self, devices):
+        pass
+
     def ensure_attrs(self):
         '''Ensure that attributes from REQUIRED_ATTRS exist, don't overwrite'''
         for attr in self.REQUIRED_ATTRS:
