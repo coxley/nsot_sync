@@ -1,0 +1,3 @@
+{
+  "tests/test_cli.py::test_basic_exec": true
+}

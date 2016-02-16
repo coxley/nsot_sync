@@ -1,0 +1,4 @@
+
+        [console_scripts]
+        nsot_sync=nsot_sync.cli:main
+    
