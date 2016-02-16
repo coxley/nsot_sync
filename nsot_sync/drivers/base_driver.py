@@ -1,6 +1,7 @@
 from __future__ import print_function
 import json
 from abc import abstractmethod
+from requests.exceptions import ConnectionError
 from pynsot.client import get_api_client
 from nsot_sync.common import error, success
 
@@ -30,23 +31,25 @@ class BaseDriver(object):
 
     REQUIRED_ATTRS = []
 
-    def __init__(self, cli_params=None):
+    def __init__(self, click_ctx=None):
         '''
 
-        :param cli_params: Parameters passed into click (eg, ctx.obj)
-        :type cli_params: dict
+        :param click_ctx: Click context object
+        :type click_ctx: click.Context
 
         ctx.obj values are manually set to share throughout the context at the
         entrypoint functions. Any that need sharing are probably passed by the
         main one (noop, site_id, etc) but when subclassing you know your driver
         best
+
+        Also helps with doing CLI exits like click_ctx.fail(msg)
         '''
 
-        if cli_params is None:
-            raise Exception('Please pass ctx.obj to driver init')
+        if click_ctx is None:
+            raise Exception('Please pass click context to driver init')
 
-        self.cli_params = cli_params
-        self.site_id = cli_params['SITE_ID']
+        self.click_ctx = click_ctx
+        self.site_id = click_ctx.obj['SITE_ID']
         self.client = get_api_client()
 
     @abstractmethod
@@ -80,6 +83,8 @@ class BaseDriver(object):
         network['cidr'] = cidr
         try:
             existing = c.networks.query.get(**network)['data']['networks']
+        except ConnectionError:
+            self.click_ctx.fail('Cannot connect to NSoT server')
         except Exception as e:
             self.handle_pynsot_err(e)
 
@@ -88,12 +93,16 @@ class BaseDriver(object):
             try:
                 c.networks.put(network)
                 success('%s updated!' % cidr)
+            except ConnectionError:
+                self.click_ctx.fail('Cannot connect to NSoT server')
             except Exception as e:
                 self.handle_pynsot_err(e, cidr)
         else:
             try:
                 c.networks.post(network)
                 success('%s created!' % cidr)
+            except ConnectionError:
+                self.click_ctx.fail('Cannot connect to NSoT server')
             except Exception as e:
                 self.handle_pynsot_err(e, cidr)
 
@@ -112,7 +121,10 @@ class BaseDriver(object):
             attr.update({'site_id': self.site_id})
             try:
                 existing = c.attributes.get(**attr)['data']['attributes']
+            except ConnectionError:
+                self.click_ctx.fail('Cannot connect to NSoT server')
             except Exception as e:
+                print(dir(e))
                 self.handle_pynsot_err(e)
 
             try:
@@ -121,6 +133,8 @@ class BaseDriver(object):
                 else:
                     self.client.attributes.post(attr)
                     success('%s created!' % attr['name'])
+            except ConnectionError:
+                self.click_ctx.fail('Cannot connect to NSoT server')
             except Exception as e:
                 self.handle_pynsot_err(e)
 
