@@ -97,7 +97,7 @@ class SimpleDriver(BaseDriver):
                     network_resource = {
                         'is_ip': True,
                         'network_address': addr['addr'],
-                        'site_id': self.cli_params['SITE_ID'],
+                        'site_id': self.site_id,
                         'state': 'assigned',
                         'prefix_length': length,
                         'attributes': {

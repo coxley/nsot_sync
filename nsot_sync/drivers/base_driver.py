@@ -4,6 +4,7 @@ from abc import abstractmethod
 from requests.exceptions import ConnectionError
 from pynsot.client import get_api_client
 from nsot_sync.common import error, success
+from pynsot.vendor.slumber.exceptions import HttpClientError
 
 
 class BaseDriver(object):
@@ -68,7 +69,7 @@ class BaseDriver(object):
         #  for interface in resources['interfaces']]
 
     def handle_network(self, network):
-        '''Take a network and create/update in NSoT'''
+        '''Take a single network and create/update in NSoT'''
 
         # Because of issue #36 and #118 upstream NSoT, as of this comment
         # resources are not round-tripable. This means that "cidr" is a
@@ -82,20 +83,27 @@ class BaseDriver(object):
         cidr = '%s/%s' % (network['network_address'], network['prefix_length'])
         network['cidr'] = cidr
         try:
-            existing = c.networks.query.get(**network)['data']['networks']
+            # Test if existing network to determine whether to PATCH or POST
+            #
+            # Need to remove the 'attributes' key from resource to query it
+            # from NSoT currently (2015-02-17)
+            lookup = network.copy()
+            lookup.pop('attributes')
+            existing = c.networks.query.get(**lookup)['data']['networks']
         except ConnectionError:
             self.click_ctx.fail('Cannot connect to NSoT server')
-        except Exception as e:
+        except HttpClientError as e:
             self.handle_pynsot_err(e)
 
         if existing:
             network['id'] = existing[0]['id']
             try:
-                c.networks.put(network)
+                c.networks.put([network])
                 success('%s updated!' % cidr)
             except ConnectionError:
                 self.click_ctx.fail('Cannot connect to NSoT server')
-            except Exception as e:
+            except HttpClientError as e:
+                print(e)
                 self.handle_pynsot_err(e, cidr)
         else:
             try:
@@ -103,7 +111,7 @@ class BaseDriver(object):
                 success('%s created!' % cidr)
             except ConnectionError:
                 self.click_ctx.fail('Cannot connect to NSoT server')
-            except Exception as e:
+            except HttpClientError as e:
                 self.handle_pynsot_err(e, cidr)
 
     def handle_interface(self, interface):
@@ -123,19 +131,18 @@ class BaseDriver(object):
                 existing = c.attributes.get(**attr)['data']['attributes']
             except ConnectionError:
                 self.click_ctx.fail('Cannot connect to NSoT server')
-            except Exception as e:
-                print(dir(e))
+            except HttpClientError as e:
                 self.handle_pynsot_err(e)
 
             try:
                 if existing:  # Like in the docstring, don't overwrite
                     pass
                 else:
-                    self.client.attributes.post(attr)
+                    c.attributes.post(attr)
                     success('%s created!' % attr['name'])
             except ConnectionError:
                 self.click_ctx.fail('Cannot connect to NSoT server')
-            except Exception as e:
+            except HttpClientError as e:
                 self.handle_pynsot_err(e)
 
     def handle_pynsot_err(self, e, desc=''):
