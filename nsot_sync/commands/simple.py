@@ -12,6 +12,7 @@ def cli(ctx):
     No extra attributes are added to the resources other than linking them
     together
     '''
+
     driver = simple.SimpleDriver(click_ctx=ctx)
     if ctx.obj['NOOP']:
         click.echo(json.dumps(driver.get_resources()))
