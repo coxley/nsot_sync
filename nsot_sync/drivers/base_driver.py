@@ -1,10 +1,11 @@
 from __future__ import print_function
 import json
+import logging
 from abc import abstractmethod
 from requests.exceptions import ConnectionError
 from pynsot.client import get_api_client
-from nsot_sync.common import error, success
 from pynsot.vendor.slumber.exceptions import HttpClientError
+from nsot_sync.common import error, success
 
 
 class BaseDriver(object):
@@ -44,6 +45,8 @@ class BaseDriver(object):
         best
 
         Also helps with doing CLI exits like click_ctx.fail(msg)
+
+        self.logger is set to the application logger
         '''
 
         if click_ctx is None:
@@ -52,6 +55,8 @@ class BaseDriver(object):
         self.click_ctx = click_ctx
         self.site_id = click_ctx.obj['SITE_ID']
         self.client = get_api_client()
+        logger = logging.getLogger(__name__)
+        self.logger = logger
 
     @abstractmethod
     def get_resources(self):

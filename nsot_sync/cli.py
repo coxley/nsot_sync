@@ -10,9 +10,8 @@ Click command. This is where the driver entrypoints should be.
 '''
 
 from __future__ import print_function
-import click
 import os
-
+import click
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 PLUGIN_FOLDERS = [
@@ -52,8 +51,9 @@ class DynamicLoader(click.MultiCommand):
 
 
 @click.command(cls=DynamicLoader, context_settings=CONTEXT_SETTINGS)
-@click.version_option(None, '-v', '--version')
+@click.version_option(None, '-V', '--version')
 @click.option('--noop', is_flag=True, help='no-op mode')
+@click.option('--verbose', '-v', count=True, help='Verbose logging')
 @click.option(
     '--site-id',
     '-s',
@@ -62,7 +62,7 @@ class DynamicLoader(click.MultiCommand):
     help='NSoT site id to sync to'
 )
 @click.pass_context
-def cli(ctx, noop=False, site_id=1):
+def cli(ctx, noop=False, site_id=1, verbose=0):
     '''nsot_sync creates/updates resources in an NSoT instance
 
     By default, nsot_sync will manage network and interface resources along
@@ -71,8 +71,22 @@ def cli(ctx, noop=False, site_id=1):
     The drivers are the available commands. (eg, facter and simple) Custom
     drivers can be requested or added at https://github.com/coxley/nsot_sync
     '''
+
+    # Configure logging, which only needs to be done in one spot for an entire
+    # application. Other modules will create instances of .get_logger()
+    import coloredlogs
+    if verbose >= 2:
+        log_level = 'DEBUG'
+    elif verbose == 1:
+        log_level = 'INFO'
+    elif verbose == 0:
+        log_level = 'WARNING'
+
+    coloredlogs.install(level=log_level)
+
     ctx.obj['SITE_ID'] = site_id
     ctx.obj['NOOP'] = noop
+    ctx.obj['VERBOSE'] = verbose
 
 
 def main():
