@@ -270,6 +270,13 @@ class BaseDriver(object):
                 self.logger.exception('ensure_attrs, posting attr %s' % attr)
 
     def handle_pynsot_err(self, e, desc=''):
+        base_net = "IP Address needs base network"
+        if base_net in e.content:
+            self.logger.warning(
+                '%s: No base network created for relevant resource',
+                desc
+            )
+            return
         content = json.dumps(e.content)
         if desc:
             content = '%s: %s' % (desc, content)
