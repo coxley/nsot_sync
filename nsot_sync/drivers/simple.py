@@ -1,5 +1,6 @@
 from __future__ import print_function
 from nsot_sync.drivers.base_driver import BaseDriver
+import socket
 import platform
 import netifaces
 
@@ -21,12 +22,21 @@ class SimpleDriver(BaseDriver):
             'resource_name': 'Device',
             'description': 'Description',
             'display': True,
+            'required': False,
         },
         {
             'name': 'desc',
             'resource_name': 'Network',
             'description': 'Description',
             'display': True,
+            'required': False,
+        },
+        {
+            'name': 'desc',
+            'resource_name': 'Interface',
+            'description': 'Description',
+            'display': True,
+            'required': False,
         }
     ]
     INTF_IGNORE_PREFIXES = [
@@ -41,13 +51,17 @@ class SimpleDriver(BaseDriver):
     ]
 
     def get_resources(self):  # -> Dict[string, list]
-        return self.get_networks_and_interfaces()
+        resources_to_create = {}
+        resources_to_create.update(self.get_networks_and_interfaces())
+        resources_to_create.update({'devices': [self.get_device()]})
+        return resources_to_create
 
     def get_networks_and_interfaces(self):  # -> Dict[string, list]
         '''Returns dict of interfaces and networks
 
         Uses netifaces to get AF_INET, AF_INET6, and AF_LINK
         '''
+        self.logger.debug('Grabbing interfaces from netifaces')
         prospects = [intf for intf in netifaces.interfaces()
                      if not intf.startswith(tuple(self.INTF_IGNORE_PREFIXES))]
 
@@ -60,15 +74,19 @@ class SimpleDriver(BaseDriver):
             # This loops through prospecting interfaces, fetching all the
             # possible network resources you can create from it and the
             # interface resource itself.
+            self.logger.debug('Iteration %s of prospecting interfaces', intf)
             for net_resources, intf_resource in self.intf_fetch(intf):
                 networks.extend(net_resources)
                 interfaces.append(intf_resource)
 
         return {'interfaces': interfaces, 'networks': networks}
 
-    def get_devices(self):  # -> Dict[string, list]
+    def get_device(self):  # -> Dict[string, list]
         '''Returns dict keyed to devices'''
-        pass
+        self.logger.debug('Creating resource for device')
+        return {
+            'hostname': socket.gethostname(),
+        }
 
     def intf_fetch(self, ifname):
         '''Return tuple of networks (list) and interface resource (dict)
@@ -111,7 +129,7 @@ class SimpleDriver(BaseDriver):
                           for r in networks],
             'description': '%s on %s' % (ifname, platform.node()),
             'mac_address': mac_addr,
-            'device': None,
+            'device': socket.gethostname(),
             'attributes': {},
             'type': 6,
             'name': ifname
