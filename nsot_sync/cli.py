@@ -50,6 +50,22 @@ class DynamicLoader(click.MultiCommand):
         return ns['cli']
 
 
+def validate_attrs(ctx, param, value):  # -> Dict[str, str]
+    '''Attributes must be passed as: 'attr=value,attr2=value 2,attr3=value' '''
+    import re
+
+    if not value:
+        return {}
+
+    try:
+        values = re.split(',|, ', value)
+        attrs = {v.split('=')[0].strip(): v.split('=')[1].strip()
+                 for v in values}
+        return attrs
+    except:
+        raise click.BadParameter(validate_attrs.__doc__)
+
+
 @click.command(cls=DynamicLoader, context_settings=CONTEXT_SETTINGS)
 @click.version_option(None, '-V', '--version')
 @click.option('--noop', is_flag=True, help='no-op mode')
@@ -61,8 +77,20 @@ class DynamicLoader(click.MultiCommand):
     type=int,
     help='NSoT site id to sync to'
 )
+@click.option('--device-attrs', callback=validate_attrs, default={},
+              help='List of static attributes to add to devices')
+@click.option('--network-attrs', callback=validate_attrs, default={},
+              help='List of static attributes to add to networks')
+@click.option('--interface-attrs', callback=validate_attrs, default={},
+              help='List of static attributes to add to interfaces')
 @click.pass_context
-def cli(ctx, noop=False, site_id=1, verbose=0):
+def cli(ctx,
+        noop=False,
+        site_id=1,
+        device_attrs={},
+        network_attrs={},
+        interface_attrs={},
+        verbose=0):
     '''nsot_sync creates/updates resources in an NSoT instance
 
     By default, nsot_sync will manage network and interface resources along
@@ -87,6 +115,11 @@ def cli(ctx, noop=False, site_id=1, verbose=0):
     ctx.obj['SITE_ID'] = site_id
     ctx.obj['NOOP'] = noop
     ctx.obj['VERBOSE'] = verbose
+    ctx.obj['EXTRA_ATTRS'] = {
+        'network_attrs': network_attrs,
+        'device_attrs': device_attrs,
+        'interface_attrs': interface_attrs,
+    }
 
 
 def main():

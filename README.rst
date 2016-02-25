@@ -14,3 +14,11 @@ Heavy development
 
 * Finish docs
 * Write tests
+
+Driver Contract
+---------------
+
+Unfinished, reminder list for writing the real contract out
+
+* Every resource must contain an 'attributes' key, even if empty dict
+

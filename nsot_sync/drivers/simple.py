@@ -86,6 +86,7 @@ class SimpleDriver(BaseDriver):
         self.logger.debug('Creating resource for device')
         return {
             'hostname': socket.gethostname().split('.')[0],
+            'attributes': {},
         }
 
     def intf_fetch(self, ifname):

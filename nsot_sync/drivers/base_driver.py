@@ -62,9 +62,26 @@ class BaseDriver(object):
     def get_resources(self):
         pass
 
+    def add_extra_attrs(self, resources):
+        extra = self.click_ctx.obj['EXTRA_ATTRS']
+        r = resources
+        self.logger.debug('Extra: %s', extra)
+
+        for rtype, attrs in extra.iteritems():
+            if rtype == 'network_attrs':
+                [x['attributes'].update(attrs) for x in r['networks']]
+            elif rtype == 'device_attrs':
+                [x['attributes'].update(attrs) for x in r['devices']]
+            elif rtype == 'interface_attrs':
+                [x['attributes'].update(attrs) for x in r['interfaces']]
+
+        return r
+
     def handle_resources(self):
         '''Takes output of .get_resources to create/update as needed'''
         resources = self.get_resources()
+        resources = self.add_extra_attrs(resources)
+        self.logger.debug('All staged resources: %s', resources)
 
         # Create resources, interfaces last so networks and device exist to
         # attach to
