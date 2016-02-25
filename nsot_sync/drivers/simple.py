@@ -85,7 +85,7 @@ class SimpleDriver(BaseDriver):
         '''Returns dict keyed to devices'''
         self.logger.debug('Creating resource for device')
         return {
-            'hostname': socket.gethostname(),
+            'hostname': socket.gethostname().split('.')[0],
         }
 
     def intf_fetch(self, ifname):
@@ -133,7 +133,7 @@ class SimpleDriver(BaseDriver):
                           for r in networks],
             'description': '%s on %s' % (ifname, platform.node()),
             'mac_address': mac_addr,
-            'device': socket.gethostname(),
+            'device': socket.gethostname().split('.')[0],
             'attributes': {},
             'type': 6,
             'name': ifname
