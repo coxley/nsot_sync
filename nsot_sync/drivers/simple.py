@@ -96,7 +96,11 @@ class SimpleDriver(BaseDriver):
         then the single interface.
         '''
         families = netifaces.ifaddresses(ifname)
-        mac_addr = families[netifaces.AF_LINK][0]['addr']
+        try:
+            # Not all interfaces have AF_LINK
+            mac_addr = families[netifaces.AF_LINK][0]['addr']
+        except KeyError:
+            mac_addr = '00:00:00:00:00:00'
         networks = []
 
         for family, addrs in families.iteritems():
