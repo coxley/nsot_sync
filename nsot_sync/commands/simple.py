@@ -18,5 +18,4 @@ def cli(ctx):
         click.echo(json.dumps(driver.get_resources()))
         return
 
-    driver.ensure_attrs()
     driver.handle_resources()

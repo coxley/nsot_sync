@@ -1,4 +1,5 @@
 from __future__ import print_function
+import re
 import json
 import logging
 from abc import abstractmethod
@@ -58,27 +59,41 @@ class BaseDriver(object):
         logger = logging.getLogger(__name__)
         self.logger = logger
 
+        self.require_extra_attrs()
+
     @abstractmethod
     def get_resources(self):
         pass
 
+    def require_extra_attrs(self):
+        '''Appends EXTRA_ATTRS to REQUIRED_ATTRS so they're ensured'''
+        extra = self.click_ctx.obj['EXTRA_ATTRS']
+        for rtype, resources in extra.iteritems():
+            rname = re.match('(?P<resource>\S+)_attrs', rtype).groups()[0]
+            for name in resources.keys():
+                resource = {
+                    'name': name,
+                    'resource_name': rname.title(),
+                    'required': False,
+                }
+                self.REQUIRED_ATTRS.append(resource)
+
     def add_extra_attrs(self, resources):
+        '''This method is for adding the Ad-Hoc attrs first mentioned in #5'''
         extra = self.click_ctx.obj['EXTRA_ATTRS']
         r = resources
         self.logger.debug('Extra: %s', extra)
 
         for rtype, attrs in extra.iteritems():
-            if rtype == 'network_attrs':
-                [x['attributes'].update(attrs) for x in r['networks']]
-            elif rtype == 'device_attrs':
-                [x['attributes'].update(attrs) for x in r['devices']]
-            elif rtype == 'interface_attrs':
-                [x['attributes'].update(attrs) for x in r['interfaces']]
+            rname_pl = '%ss' % re.match('(\S+)_attrs', rtype).groups()[0]
+            [x['attributes'].update(attrs) for x in r[rname_pl]]
 
         return r
 
     def handle_resources(self):
         '''Takes output of .get_resources to create/update as needed'''
+
+        self.ensure_attrs()
         resources = self.get_resources()
         resources = self.add_extra_attrs(resources)
         self.logger.debug('All staged resources: %s', resources)
