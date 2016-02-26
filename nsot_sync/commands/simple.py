@@ -1,5 +1,4 @@
 from __future__ import print_function
-import json
 import click
 from nsot_sync.drivers import simple
 
@@ -15,7 +14,7 @@ def cli(ctx):
 
     driver = simple.SimpleDriver(click_ctx=ctx)
     if ctx.obj['NOOP']:
-        click.echo(json.dumps(driver.get_resources()))
+        driver.noop()
         return
 
     driver.handle_resources()
