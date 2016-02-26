@@ -1,6 +1,7 @@
 from __future__ import print_function
 import re
 import json
+import click
 import logging
 from abc import abstractmethod
 from requests.exceptions import ConnectionError
@@ -90,12 +91,23 @@ class BaseDriver(object):
 
         return r
 
+    def noop(self):
+        '''Outputs JSON to STDOUT of the resources that would be created'''
+        click.echo(json.dumps(self.merge_all()))
+
+    def merge_all(self):
+        '''Merge all resources, adding extra attrs, for what will be created
+
+        This is useful for representing what exactly will be created and lets
+        .noop() be less redundant
+        '''
+        from_driver = self.get_resources()
+        extra_attrs_added = self.add_extra_attrs(from_driver)
+        return extra_attrs_added
+
     def handle_resources(self):
         '''Takes output of .get_resources to create/update as needed'''
-
-        self.ensure_attrs()
-        resources = self.get_resources()
-        resources = self.add_extra_attrs(resources)
+        resources = self.merge_all()
         self.logger.debug('All staged resources: %s', resources)
 
         # Create resources, interfaces last so networks and device exist to
