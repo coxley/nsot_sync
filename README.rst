@@ -7,13 +7,15 @@ networks or another vendor's IPAM) to native NSoT resources.
 It has been written to make adding extra drivers easy, based on a simple
 contract.
 
+For Quickstart and other documentation, `check out the docs`_.
+
+.. _check out the docs: http://nsot-sync.readthedocs.org/en/latest/
+
 TODO
 ----
 
-Heavy development
-
-* Finish docs
 * Write tests
+* Write out driver contract
 
 Driver Contract
 ---------------
