@@ -1,0 +1,354 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>nsot_sync.drivers.simple &mdash; nsot_sync 0.4.5 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="nsot_sync 0.4.5 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> nsot_sync
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4.5
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="simple">
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">nsot_sync</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>nsot_sync.drivers.simple</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for nsot_sync.drivers.simple</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">nsot_sync.drivers.base_driver</span> <span class="kn">import</span> <span class="n">BaseDriver</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+<span class="kn">import</span> <span class="nn">netifaces</span>
+
+
+<div class="viewcode-block" id="SimpleDriver"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.simple.SimpleDriver">[docs]</a><span class="k">class</span> <span class="nc">SimpleDriver</span><span class="p">(</span><span class="n">BaseDriver</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Simple driver</span>
+
+<span class="sd">    This driver will collect network information via netifaces on the localhost</span>
+<span class="sd">    then generate NSoT resources for them and the host. The only attribute</span>
+<span class="sd">    created and applied is &#39;desc&#39;.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        If you&#39;re writing a driver to supplement just attributes, consider</span>
+<span class="sd">        subclassing this class to get the localhost network data.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        REQUIRED_ATTRS (list): To ensure &#39;desc&#39; is created for each resource</span>
+<span class="sd">        INTF_IGNORE_PREFIXES (list): Ignore interfaces.startswith(i)</span>
+<span class="sd">        INTF_OK_FAMILIES (list): Only add addresses from these address families</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">REQUIRED_ATTRS</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;desc&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;resource_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Device&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Description&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s1">&#39;required&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;desc&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;resource_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Network&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Description&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s1">&#39;required&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;desc&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;resource_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Interface&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Description&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;display&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="s1">&#39;required&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+    <span class="n">INTF_IGNORE_PREFIXES</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;lo&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;docker&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;fw0&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">INTF_OK_FAMILIES</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">netifaces</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span>
+        <span class="n">netifaces</span><span class="o">.</span><span class="n">AF_INET6</span><span class="p">,</span>
+        <span class="n">netifaces</span><span class="o">.</span><span class="n">AF_LINK</span><span class="p">,</span>
+    <span class="p">]</span>
+
+<div class="viewcode-block" id="SimpleDriver.get_resources"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.simple.SimpleDriver.get_resources">[docs]</a>    <span class="k">def</span> <span class="nf">get_resources</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns resources to create</span>
+
+<span class="sd">        Will create interfaces, networks, and device for current host</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: strings mapped to lists</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">resources_to_create</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">resources_to_create</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_networks_and_interfaces</span><span class="p">())</span>
+        <span class="n">resources_to_create</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;devices&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_device</span><span class="p">()]})</span>
+        <span class="k">return</span> <span class="n">resources_to_create</span></div>
+
+<div class="viewcode-block" id="SimpleDriver.get_networks_and_interfaces"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.simple.SimpleDriver.get_networks_and_interfaces">[docs]</a>    <span class="k">def</span> <span class="nf">get_networks_and_interfaces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Using netifaces, generate network and interfaces to create</span>
+
+<span class="sd">        Only cares about AFs matching self.INTF_OK_FAMILIES</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: {&#39;interfaces&#39;: interfaces, &#39;networks&#39;: networks}</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Grabbing interfaces from netifaces&#39;</span><span class="p">)</span>
+        <span class="n">prospects</span> <span class="o">=</span> <span class="p">[</span><span class="n">intf</span> <span class="k">for</span> <span class="n">intf</span> <span class="ow">in</span> <span class="n">netifaces</span><span class="o">.</span><span class="n">interfaces</span><span class="p">()</span>
+                     <span class="k">if</span> <span class="ow">not</span> <span class="n">intf</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">INTF_IGNORE_PREFIXES</span><span class="p">))]</span>
+
+        <span class="n">networks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">interfaces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">intf</span> <span class="ow">in</span> <span class="n">prospects</span><span class="p">:</span>
+            <span class="c1"># This loop is a bit weird, but an interface can have many</span>
+            <span class="c1"># addresses of many address families.</span>
+            <span class="c1">#</span>
+            <span class="c1"># This loops through prospecting interfaces, fetching all the</span>
+            <span class="c1"># possible network resources you can create from it and the</span>
+            <span class="c1"># interface resource itself.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Iteration </span><span class="si">%s</span><span class="s1"> of prospecting interfaces&#39;</span><span class="p">,</span> <span class="n">intf</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">net_resources</span><span class="p">,</span> <span class="n">intf_resource</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">intf_fetch</span><span class="p">(</span><span class="n">intf</span><span class="p">):</span>
+                <span class="n">networks</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">net_resources</span><span class="p">)</span>
+                <span class="n">interfaces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intf_resource</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;interfaces&#39;</span><span class="p">:</span> <span class="n">interfaces</span><span class="p">,</span> <span class="s1">&#39;networks&#39;</span><span class="p">:</span> <span class="n">networks</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="SimpleDriver.get_device"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.simple.SimpleDriver.get_device">[docs]</a>    <span class="k">def</span> <span class="nf">get_device</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Generates single device resource for self</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: {&#39;devices&#39;: [device]}</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Creating resource for device&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;hostname&#39;</span><span class="p">:</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;attributes&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="SimpleDriver.intf_fetch"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.simple.SimpleDriver.intf_fetch">[docs]</a>    <span class="k">def</span> <span class="nf">intf_fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ifname</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Gathers qualifying address families for a single interface</span>
+
+<span class="sd">        Provides the resources to create both all networks on interface and the</span>
+<span class="sd">        interface itself.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (network_resources_list, single_interface_dict)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">families</span> <span class="o">=</span> <span class="n">netifaces</span><span class="o">.</span><span class="n">ifaddresses</span><span class="p">(</span><span class="n">ifname</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Not all interfaces have AF_LINK</span>
+            <span class="n">mac_addr</span> <span class="o">=</span> <span class="n">families</span><span class="p">[</span><span class="n">netifaces</span><span class="o">.</span><span class="n">AF_LINK</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;addr&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">mac_addr</span> <span class="o">=</span> <span class="s1">&#39;00:00:00:00:00:00&#39;</span>
+        <span class="n">networks</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">family</span><span class="p">,</span> <span class="n">addrs</span> <span class="ow">in</span> <span class="n">families</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="c1"># Loop through all address families, creating network resources</span>
+            <span class="c1"># from the ones we care about</span>
+            <span class="k">if</span> <span class="n">family</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">INTF_OK_FAMILIES</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">family</span> <span class="ow">in</span> <span class="p">(</span><span class="n">netifaces</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">netifaces</span><span class="o">.</span><span class="n">AF_INET6</span><span class="p">):</span>
+                <span class="c1"># If needed to quickly do IPv6 prefix length, below might help</span>
+                <span class="c1"># 16 * len(filter(None, a.split(&#39;:&#39;))) for ffff:: netmask</span>
+                <span class="k">for</span> <span class="n">addr</span> <span class="ow">in</span> <span class="n">addrs</span><span class="p">:</span>
+                    <span class="n">length</span> <span class="o">=</span> <span class="n">family</span> <span class="o">==</span> <span class="n">netifaces</span><span class="o">.</span><span class="n">AF_INET</span> <span class="ow">and</span> <span class="mi">32</span> <span class="ow">or</span> <span class="mi">128</span>
+                    <span class="k">if</span> <span class="n">family</span> <span class="o">==</span> <span class="n">netifaces</span><span class="o">.</span><span class="n">AF_INET6</span><span class="p">:</span>
+                        <span class="n">addr</span><span class="p">[</span><span class="s1">&#39;addr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">addr</span><span class="p">[</span><span class="s1">&#39;addr&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">network_resource</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;is_ip&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                        <span class="s1">&#39;network_address&#39;</span><span class="p">:</span> <span class="n">addr</span><span class="p">[</span><span class="s1">&#39;addr&#39;</span><span class="p">],</span>
+                        <span class="s1">&#39;site_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_id</span><span class="p">,</span>
+                        <span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="s1">&#39;assigned&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;prefix_length&#39;</span><span class="p">:</span> <span class="n">length</span><span class="p">,</span>
+                        <span class="s1">&#39;attributes&#39;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s1">&#39;desc&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> on </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ifname</span><span class="p">,</span> <span class="n">platform</span><span class="o">.</span><span class="n">node</span><span class="p">()),</span>
+                        <span class="p">}</span>
+                    <span class="p">}</span>
+                    <span class="n">networks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">network_resource</span><span class="p">)</span>
+
+        <span class="n">interface</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;addresses&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;network_address&#39;</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;prefix_length&#39;</span><span class="p">])</span>
+                          <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">networks</span><span class="p">],</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> on </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ifname</span><span class="p">,</span> <span class="n">platform</span><span class="o">.</span><span class="n">node</span><span class="p">()),</span>
+            <span class="s1">&#39;mac_address&#39;</span><span class="p">:</span> <span class="n">mac_addr</span><span class="p">,</span>
+            <span class="s1">&#39;device&#39;</span><span class="p">:</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;attributes&#39;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">ifname</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">networks</span><span class="p">,</span> <span class="n">interface</span><span class="p">)]</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Codey Oxley.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.4.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

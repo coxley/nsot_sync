@@ -13,42 +13,91 @@ from nsot_sync.common import success
 class BaseDriver(object):
     '''Base class for nsot_sync drivers
 
-    This is meant for subclassing and you must override .get_resources()
+    This is meant for subclassing and you must override .get_resources() which
+    should return resources to create, keyed by the resource type.
 
-    If you're driver sets attributes, you can't guarantee the remote end will
-    have these set up. To get around this, override the REQUIRED_ATTRS
-    property. This should be a list of NSoT attribute dicts. If you're not
-    familiar with the format, see the below examples:
+    >>> self.get_resources()
+    {
+      "interfaces": [
+        {
+          "addresses": [
+            "10.97.3.113/32",
+            "fe80::82e6:50ff:fe0d:fc2e/128"
+          ],
+          "name": "wlp2s0",
+          "mac_address": "80:e6:50:0d:fc:2e",
+          "device": "coxley-mbp",
+          "attributes": {},
+          "type": 6,
+          "description": "wlp2s0 on coxley-mbp"
+        }
+      ],
+      "networks": [
+        {
+          "is_ip": true,
+          "network_address": "10.97.3.113",
+          "site_id": 1,
+          "state": "assigned",
+          "prefix_length": 32,
+          "attributes": {
+            "desc": "wlp2s0 on coxley-mbp"
+          }
+        },
+        {
+          "is_ip": true,
+          "network_address": "fe80::82e6:50ff:fe0d:fc2e",
+          "site_id": 1,
+          "state": "assigned",
+          "prefix_length": 128,
+          "attributes": {
+            "desc": "wlp2s0 on coxley-mbp"
+          }
+        }
+      ],
+      "devices": [
+        {
+          "attributes": {},
+          "hostname": "coxley-mbp"
+        }
+      ]
+    }
 
-    >>> REQUIRED_ATTRS = [
-            {
-                'name': 'dc',
-                'resource_name': 'Device',
-                'description': 'Datacenter',
-                'display': True,
-                'required': True,
-                'multi': False,
-            }
-        ]
+    Attributes:
+        click_ctx (click.Context): Click context
+        site_id (int): NSoT site id to perfom operations on
+        client (pynsot.EmailHeaderClient): via pynsot.client.get_api_client()
+        logger (Logger): logging.getLogger(__name__)
+        REQUIRED_ATTRS (list): If you're driver sets attributes, you can't
+            guarantee the remote end will have these set up. To get around
+            this, override the REQUIRED_ATTRS property. This should be a list
+            of NSoT attribute dicts. If you're not familiar with the format,
+            see the below examples:
 
+            >>> REQUIRED_ATTRS = [
+                    {
+                        'name': 'dc',
+                        'resource_name': 'Device',
+                        'description': 'Datacenter',
+                        'display': True,
+                        'required': True,
+                        'multi': False,
+                    }
+                ]
+
+    Args:
+        click_ctx (click.Context): Context from Click. Context.obj values are
+            manually set to share throughout the context at the entrypoint
+            functions. Any that need sharing are probably passed by the main
+            one (noop, site_id, etc) but when subclassing you know your driver
+            best
+
+            Also helps with doing CLI exits like click_ctx.fail(msg)
     '''
 
     REQUIRED_ATTRS = []
 
     def __init__(self, click_ctx=None):
         '''
-
-        :param click_ctx: Click context object
-        :type click_ctx: click.Context
-
-        ctx.obj values are manually set to share throughout the context at the
-        entrypoint functions. Any that need sharing are probably passed by the
-        main one (noop, site_id, etc) but when subclassing you know your driver
-        best
-
-        Also helps with doing CLI exits like click_ctx.fail(msg)
-
-        self.logger is set to the application logger
         '''
 
         if click_ctx is None:
@@ -67,7 +116,11 @@ class BaseDriver(object):
         pass
 
     def require_extra_attrs(self):
-        '''Appends EXTRA_ATTRS to REQUIRED_ATTRS so they're ensured'''
+        '''Appends EXTRA_ATTRS to REQUIRED_ATTRS so they're ensured
+
+        Note:
+            These come from the CLI args --[resource]-attrs
+        '''
         extra = self.click_ctx.obj['EXTRA_ATTRS']
         for rtype, resources in extra.iteritems():
             rname = re.match('(?P<resource>\S+)_attrs', rtype).groups()[0]
@@ -80,7 +133,14 @@ class BaseDriver(object):
                 self.REQUIRED_ATTRS.append(resource)
 
     def add_extra_attrs(self, resources):
-        '''This method is for adding the Ad-Hoc attrs first mentioned in #5'''
+        '''Updates resources with relevant extra attrs given at the CLI
+
+        Note:
+            This happens right before resources are either created or No-Op'd
+
+        Args:
+            resources (dict): Resources as returned by self.get_resources
+        '''
         extra = self.click_ctx.obj['EXTRA_ATTRS']
         r = resources
         self.logger.debug('Extra: %s', extra)
@@ -100,6 +160,9 @@ class BaseDriver(object):
 
         This is useful for representing what exactly will be created and lets
         .noop() be less redundant
+
+        Returns:
+            dict: Same format as would be expected from .get_resources
         '''
         from_driver = self.get_resources()
         extra_attrs_added = self.add_extra_attrs(from_driver)
@@ -171,10 +234,11 @@ class BaseDriver(object):
     def handle_interface(self, interface):
         '''Take a single interface and create/update in NSoT
 
-        As part of the driver contract, an interface passed here might have
-        'device' set to a hostname instead of the ID. Until NSoT supports
-        natural key references within a resource, we should detect and fetch
-        this
+        Note:
+            As part of the driver contract, an interface passed here might have
+            'device' set to a hostname instead of the ID. Until NSoT supports
+            natural key references within a resource, we should detect and
+            fetch this
         '''
         c = self.client
         name = interface['name']

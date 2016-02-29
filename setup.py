@@ -22,6 +22,9 @@ setup(
         'IPy==0.83',
         'coloredlogs==5.0',
     ],
+    extras_require={
+        'docs': ['sphinx', 'sphinx-autobuild', 'sphinx-rtd-theme'],
+    },
     tests_require=['pytest'],
     setup_requires=['pytest-runner'],
     entry_points='''

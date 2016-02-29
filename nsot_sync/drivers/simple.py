@@ -12,8 +12,15 @@ class SimpleDriver(BaseDriver):
     then generate NSoT resources for them and the host. The only attribute
     created and applied is 'desc'.
 
-    If you're writing a driver to supplement just attributes, consider
-    subclassing this class to get the localhost network data.
+    Note:
+        If you're writing a driver to supplement just attributes, consider
+        subclassing this class to get the localhost network data.
+
+    Attributes:
+        REQUIRED_ATTRS (list): To ensure 'desc' is created for each resource
+        INTF_IGNORE_PREFIXES (list): Ignore interfaces.startswith(i)
+        INTF_OK_FAMILIES (list): Only add addresses from these address families
+
     '''
 
     REQUIRED_ATTRS = [
@@ -50,16 +57,26 @@ class SimpleDriver(BaseDriver):
         netifaces.AF_LINK,
     ]
 
-    def get_resources(self):  # -> Dict[string, list]
+    def get_resources(self):
+        '''Returns resources to create
+
+        Will create interfaces, networks, and device for current host
+
+        Returns:
+            dict: strings mapped to lists
+        '''
         resources_to_create = {}
         resources_to_create.update(self.get_networks_and_interfaces())
         resources_to_create.update({'devices': [self.get_device()]})
         return resources_to_create
 
-    def get_networks_and_interfaces(self):  # -> Dict[string, list]
-        '''Returns dict of interfaces and networks
+    def get_networks_and_interfaces(self):
+        '''Using netifaces, generate network and interfaces to create
 
-        Uses netifaces to get AF_INET, AF_INET6, and AF_LINK
+        Only cares about AFs matching self.INTF_OK_FAMILIES
+
+        Returns:
+            dict: {'interfaces': interfaces, 'networks': networks}
         '''
         self.logger.debug('Grabbing interfaces from netifaces')
         prospects = [intf for intf in netifaces.interfaces()
@@ -81,8 +98,12 @@ class SimpleDriver(BaseDriver):
 
         return {'interfaces': interfaces, 'networks': networks}
 
-    def get_device(self):  # -> Dict[string, list]
-        '''Returns dict keyed to devices'''
+    def get_device(self):
+        '''Generates single device resource for self
+
+        Returns:
+            dict: {'devices': [device]}
+        '''
         self.logger.debug('Creating resource for device')
         return {
             'hostname': socket.gethostname().split('.')[0],
@@ -90,11 +111,13 @@ class SimpleDriver(BaseDriver):
         }
 
     def intf_fetch(self, ifname):
-        '''Return tuple of networks (list) and interface resource (dict)
+        '''Gathers qualifying address families for a single interface
 
-        To clarify, this is looking at the possibly many address families for a
-        single interface and returning the resources to create the networks and
-        then the single interface.
+        Provides the resources to create both all networks on interface and the
+        interface itself.
+
+        Returns:
+            tuple: (network_resources_list, single_interface_dict)
         '''
         families = netifaces.ifaddresses(ifname)
         try:
