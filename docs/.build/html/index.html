@@ -1,0 +1,337 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Welcome to NSoT_Sync &mdash; nsot_sync 0.4.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="nsot_sync 0.4.6 documentation" href="#"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="#" class="icon icon-home"> nsot_sync
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="simple">
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="#">nsot_sync</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="#">Docs</a> &raquo;</li>
+      
+    <li>Welcome to NSoT_Sync</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/index.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="welcome-to-nsot-sync">
+<h1>Welcome to NSoT_Sync<a class="headerlink" href="#welcome-to-nsot-sync" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+<p>NSoT Sync is a program to help automate adding and updating resources in
+<a class="reference external" href="https://github.com/dropbox/nsot">NSoT</a> from other sources. As of now, the main source is telling NSoT about
+the running computer&#8217;s networks, interfaces, and self but a WIP for syncing
+from Solarwinds IPAM and SNMP is on the way.</p>
+<div class="section" id="motivations">
+<h2>Motivations<a class="headerlink" href="#motivations" title="Permalink to this headline">¶</a></h2>
+<p>NSoT as an IPAM is refreshing among the other open source solutions. Though to
+see its potential, you generally need to write some code against it. The goal
+of NSoT Sync is to provide those who want instant gratification with automatic
+resource generation from a handful of common sources.</p>
+<p><code class="docutils literal"><span class="pre">nsot_sync</span></code> is designed to be ran from cron or ad-hoc, to sync from remote or
+local sources via built-in drivers.</p>
+</div>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Python 2.7</li>
+<li>Functioning NSoT server</li>
+<li>Configured <code class="docutils literal"><span class="pre">pynsotrc</span></code> - See the <a class="reference external" href="https://github.com/dropbox/pynsot">pynsot docs</a> or example config below</li>
+<li><code class="docutils literal"><span class="pre">jq</span></code> is optional but very useful. Install it with <code class="docutils literal"><span class="pre">apt-get</span> <span class="pre">install</span> <span class="pre">jq</span></code> or
+<code class="docutils literal"><span class="pre">pacman</span> <span class="pre">-S</span> <span class="pre">jq</span></code></li>
+</ul>
+<p>We try to maintain support across all Windows, OSX, and Linux computers. That
+being said, we don&#8217;t have any Windows systems to test on so there might be some
+bugs there. If you run across one, please <a class="reference external" href="https://github.com/coxley/nsot_sync/issues/new">submit an issue</a>!</p>
+</div>
+<div class="section" id="quickstart">
+<h2>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h2>
+<p>If you don&#8217;t have an existing NSoT instance, do the following to get a working
+instance and pynsot config:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>cat <span class="s">&lt;&lt;EOF &gt; ~/.pynsotrc</span>
+<span class="s">[pynsot]</span>
+<span class="s">url = http://localhost:8990/api</span>
+<span class="s">auth_method = auth_header</span>
+<span class="s">auth_header = X-NSoT-Email</span>
+<span class="s">default_site = 1</span>
+<span class="s">email = nsot_sync@localhost</span>
+<span class="s">default_domain = localhost</span>
+<span class="s">EOF</span>
+
+pip install nsot
+git clone https://github.com/dropbox/nsot
+<span class="nb">cd</span> nsot/demo <span class="o">&amp;&amp;</span> ./run_demo.sh
+</pre></div>
+</div>
+<p>To finish bootstrapping, let&#8217;s add a site/realm to store our resources and
+install NSoT Sync:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>nsot sites add -n <span class="s2">&quot;My New Site&quot;</span>
+pip install nsot_sync
+</pre></div>
+</div>
+<p>Running <code class="docutils literal"><span class="pre">nsot_sync</span> <span class="pre">simple</span></code> at this point should just work, but we&#8217;ll run it
+in No-Op mode first to see what will be created. <code class="docutils literal"><span class="pre">jq</span></code> is just used to
+pretty-print the JSON output - completely optional.</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span></span><span class="nx">$</span> <span class="nx">nsot_sync</span> <span class="o">--</span><span class="nx">noop</span> <span class="nx">simple</span> <span class="o">|</span> <span class="nx">jq</span> <span class="p">.</span>
+
+<span class="p">{</span>
+  <span class="s2">&quot;interfaces&quot;</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;addresses&quot;</span><span class="o">:</span> <span class="p">[</span>
+        <span class="s2">&quot;10.97.3.113/32&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;fe80::82e6:50ff:fe0d:fc2e/128&quot;</span>
+      <span class="p">],</span>
+      <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;wlp2s0&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;mac_address&quot;</span><span class="o">:</span> <span class="s2">&quot;80:e6:50:0d:fc:2e&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;device&quot;</span><span class="o">:</span> <span class="s2">&quot;coxley-mbp&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;attributes&quot;</span><span class="o">:</span> <span class="p">{},</span>
+      <span class="s2">&quot;type&quot;</span><span class="o">:</span> <span class="mi">6</span><span class="p">,</span>
+      <span class="s2">&quot;description&quot;</span><span class="o">:</span> <span class="s2">&quot;wlp2s0 on coxley-mbp&quot;</span>
+    <span class="p">}</span>
+  <span class="p">],</span>
+  <span class="s2">&quot;networks&quot;</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;is_ip&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+      <span class="s2">&quot;network_address&quot;</span><span class="o">:</span> <span class="s2">&quot;10.97.3.113&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;site_id&quot;</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="s2">&quot;state&quot;</span><span class="o">:</span> <span class="s2">&quot;assigned&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;prefix_length&quot;</span><span class="o">:</span> <span class="mi">32</span><span class="p">,</span>
+      <span class="s2">&quot;attributes&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;desc&quot;</span><span class="o">:</span> <span class="s2">&quot;wlp2s0 on coxley-mbp&quot;</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;is_ip&quot;</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+      <span class="s2">&quot;network_address&quot;</span><span class="o">:</span> <span class="s2">&quot;fe80::82e6:50ff:fe0d:fc2e&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;site_id&quot;</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="s2">&quot;state&quot;</span><span class="o">:</span> <span class="s2">&quot;assigned&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;prefix_length&quot;</span><span class="o">:</span> <span class="mi">128</span><span class="p">,</span>
+      <span class="s2">&quot;attributes&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;desc&quot;</span><span class="o">:</span> <span class="s2">&quot;wlp2s0 on coxley-mbp&quot;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">],</span>
+  <span class="s2">&quot;devices&quot;</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;attributes&quot;</span><span class="o">:</span> <span class="p">{},</span>
+      <span class="s2">&quot;hostname&quot;</span><span class="o">:</span> <span class="s2">&quot;coxley-mbp&quot;</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Now if we re-run this without <code class="docutils literal"><span class="pre">--noop</span></code>, you should expect failures like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>SUCCESS: coxley-mpb updated!
+2016-02-28 19:39:54 coxley-mpb nsot_sync.drivers.base_driver[7356] WARNING 10.97.3.113/32: No base network created for relevant resource
+2016-02-28 19:39:54 coxley-mpb nsot_sync.drivers.base_driver[7356] WARNING fe80::82e6:50ff:fe0d:fc2e/128: No base network created for relevant resource
+2016-02-28 19:39:54 coxley-mpb nsot_sync.drivers.base_driver[7356] WARNING wlp2s0: No base network created for relevant resource
+</pre></div>
+</div>
+<p>This is side-effect of NSoT requiring a base subnet, of any size, for a host
+address (/32 or /128) to be created. To remedy, we can add any parenting
+subnet:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ nsot attributes add -n desc -d <span class="s2">&quot;Description&quot;</span> -r network
+$ nsot networks add -c 10.97.3.0/24 -a <span class="s2">&quot;desc=Guest wireless&quot;</span>
+$ nsot networks add -c fe80::/10 -a <span class="s2">&quot;desc=Link-local space&quot;</span>
+
+$ nsot_sync simple
+SUCCESS: coxley-mbp updated!
+SUCCESS: 10.97.3.113/32 created!
+SUCCESS: fe80::82e6:50ff:fe0d:fc2e/128 created!
+SUCCESS: coxley-mbp:wlp2s0 created!
+
+$ nsot networks list
++------------------------------------------------------------------------------------------------------------------------------+
+<span class="p">|</span> ID   Network                                   Prefix   Is IP?   IP Ver.   Parent ID   State       Attributes                <span class="p">|</span>
++------------------------------------------------------------------------------------------------------------------------------+
+<span class="p">|</span> <span class="m">1</span>    10.97.3.0                                 <span class="m">24</span>       False    <span class="m">4</span>         None        allocated   <span class="nv">desc</span><span class="o">=</span>Guest wireless       <span class="p">|</span>
+<span class="p">|</span> <span class="m">2</span>    fe80:0000:0000:0000:0000:0000:0000:0000   <span class="m">10</span>       False    <span class="m">6</span>         None        allocated   <span class="nv">desc</span><span class="o">=</span>Link-local space     <span class="p">|</span>
+<span class="p">|</span> <span class="m">3</span>    10.97.3.113                               <span class="m">32</span>       True     <span class="m">4</span>         <span class="m">1</span>           assigned    <span class="nv">desc</span><span class="o">=</span>wlp2s0 on coxley-mbp <span class="p">|</span>
+<span class="p">|</span> <span class="m">4</span>    fe80:0000:0000:0000:82e6:50ff:fe0d:fc2e   <span class="m">128</span>      True     <span class="m">6</span>         <span class="m">2</span>           assigned    <span class="nv">desc</span><span class="o">=</span>wlp2s0 on coxley-mbp <span class="p">|</span>
++------------------------------------------------------------------------------------------------------------------------------+
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span>Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span>Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span>Search Page</span></a></li>
+</ul>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Codey Oxley.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.4.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

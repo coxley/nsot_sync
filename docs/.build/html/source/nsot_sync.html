@@ -1,0 +1,278 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>nsot_sync package &mdash; nsot_sync 0.4.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="nsot_sync 0.4.6 documentation" href="../index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> nsot_sync
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="simple">
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">nsot_sync</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+    <li>nsot_sync package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/source/nsot_sync.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="nsot-sync-package">
+<h1>nsot_sync package<a class="headerlink" href="#nsot-sync-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="nsot_sync.commands.html">nsot_sync.commands package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nsot_sync.commands.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nsot_sync.commands.html#module-nsot_sync.commands.facter">nsot_sync.commands.facter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nsot_sync.commands.html#module-nsot_sync.commands.simple">nsot_sync.commands.simple module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nsot_sync.commands.html#module-nsot_sync.commands">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nsot_sync.drivers.html">nsot_sync.drivers package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nsot_sync.drivers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nsot_sync.drivers.html#module-nsot_sync.drivers.base_driver">nsot_sync.drivers.base_driver module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nsot_sync.drivers.html#module-nsot_sync.drivers.facter">nsot_sync.drivers.facter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nsot_sync.drivers.html#module-nsot_sync.drivers.simple">nsot_sync.drivers.simple module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nsot_sync.drivers.html#module-nsot_sync.drivers">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-nsot_sync.cli">
+<span id="nsot-sync-cli-module"></span><h2>nsot_sync.cli module<a class="headerlink" href="#module-nsot_sync.cli" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="cli">
+<h3>CLI<a class="headerlink" href="#cli" title="Permalink to this headline">¶</a></h3>
+<p>cli.main is the entrypoint for the program, which should call to cli()</p>
+<p>DynamicLoader allows loading <code class="docutils literal"><span class="pre">cli()</span></code> from any script under <code class="docutils literal"><span class="pre">commands</span></code> as a
+Click command. This is where the driver entrypoints should be.</p>
+<dl class="class">
+<dt id="nsot_sync.cli.DynamicLoader">
+<em class="property">class </em><code class="descclassname">nsot_sync.cli.</code><code class="descname">DynamicLoader</code><span class="sig-paren">(</span><em>name=None</em>, <em>invoke_without_command=False</em>, <em>no_args_is_help=None</em>, <em>subcommand_metavar=None</em>, <em>chain=False</em>, <em>result_callback=None</em>, <em>**attrs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nsot_sync/cli.html#DynamicLoader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nsot_sync.cli.DynamicLoader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">click.core.MultiCommand</span></code></p>
+<dl class="method">
+<dt id="nsot_sync.cli.DynamicLoader.fetch_dynamic_cmds">
+<code class="descname">fetch_dynamic_cmds</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nsot_sync/cli.html#DynamicLoader.fetch_dynamic_cmds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nsot_sync.cli.DynamicLoader.fetch_dynamic_cmds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="nsot_sync.cli.DynamicLoader.get_command">
+<code class="descname">get_command</code><span class="sig-paren">(</span><em>ctx</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nsot_sync/cli.html#DynamicLoader.get_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nsot_sync.cli.DynamicLoader.get_command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="nsot_sync.cli.DynamicLoader.list_commands">
+<code class="descname">list_commands</code><span class="sig-paren">(</span><em>ctx</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nsot_sync/cli.html#DynamicLoader.list_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nsot_sync.cli.DynamicLoader.list_commands" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="nsot_sync.cli.main">
+<code class="descclassname">nsot_sync.cli.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nsot_sync/cli.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nsot_sync.cli.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setuptools entrypoint, only used to call Click entrypoint</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nsot_sync.cli.validate_attrs">
+<code class="descclassname">nsot_sync.cli.</code><code class="descname">validate_attrs</code><span class="sig-paren">(</span><em>ctx</em>, <em>param</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nsot_sync/cli.html#validate_attrs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nsot_sync.cli.validate_attrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attributes must be passed as: &#8216;attr=value,attr2=value 2,attr3=value&#8217;</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-nsot_sync.common">
+<span id="nsot-sync-common-module"></span><h2>nsot_sync.common module<a class="headerlink" href="#module-nsot_sync.common" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="nsot_sync.common.error">
+<code class="descclassname">nsot_sync.common.</code><code class="descname">error</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nsot_sync/common.html#error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nsot_sync.common.error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="nsot_sync.common.info">
+<code class="descclassname">nsot_sync.common.</code><code class="descname">info</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nsot_sync/common.html#info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nsot_sync.common.info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="nsot_sync.common.success">
+<code class="descclassname">nsot_sync.common.</code><code class="descname">success</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nsot_sync/common.html#success"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nsot_sync.common.success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-nsot_sync">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-nsot_sync" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Codey Oxley.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.4.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

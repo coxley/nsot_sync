@@ -1,0 +1,581 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>nsot_sync.drivers.base_driver &mdash; nsot_sync 0.4.6 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="nsot_sync 0.4.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> nsot_sync
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="simple">
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">nsot_sync</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>nsot_sync.drivers.base_driver</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for nsot_sync.drivers.base_driver</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">requests.exceptions</span> <span class="kn">import</span> <span class="n">ConnectionError</span>
+<span class="kn">from</span> <span class="nn">pynsot.client</span> <span class="kn">import</span> <span class="n">get_api_client</span>
+<span class="kn">from</span> <span class="nn">pynsot.vendor.slumber.exceptions</span> <span class="kn">import</span> <span class="n">HttpClientError</span>
+<span class="kn">from</span> <span class="nn">nsot_sync.common</span> <span class="kn">import</span> <span class="n">success</span>
+
+
+<div class="viewcode-block" id="BaseDriver"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.base_driver.BaseDriver">[docs]</a><span class="k">class</span> <span class="nc">BaseDriver</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Base class for nsot_sync drivers</span>
+
+<span class="sd">    This is meant for subclassing and you must override .get_resources() which</span>
+<span class="sd">    should return resources to create, keyed by the resource type.</span>
+
+<span class="sd">    &gt;&gt;&gt; self.get_resources()</span>
+<span class="sd">    {</span>
+<span class="sd">      &quot;interfaces&quot;: [</span>
+<span class="sd">        {</span>
+<span class="sd">          &quot;addresses&quot;: [</span>
+<span class="sd">            &quot;10.97.3.113/32&quot;,</span>
+<span class="sd">            &quot;fe80::82e6:50ff:fe0d:fc2e/128&quot;</span>
+<span class="sd">          ],</span>
+<span class="sd">          &quot;name&quot;: &quot;wlp2s0&quot;,</span>
+<span class="sd">          &quot;mac_address&quot;: &quot;80:e6:50:0d:fc:2e&quot;,</span>
+<span class="sd">          &quot;device&quot;: &quot;coxley-mbp&quot;,</span>
+<span class="sd">          &quot;attributes&quot;: {},</span>
+<span class="sd">          &quot;type&quot;: 6,</span>
+<span class="sd">          &quot;description&quot;: &quot;wlp2s0 on coxley-mbp&quot;</span>
+<span class="sd">        }</span>
+<span class="sd">      ],</span>
+<span class="sd">      &quot;networks&quot;: [</span>
+<span class="sd">        {</span>
+<span class="sd">          &quot;is_ip&quot;: true,</span>
+<span class="sd">          &quot;network_address&quot;: &quot;10.97.3.113&quot;,</span>
+<span class="sd">          &quot;site_id&quot;: 1,</span>
+<span class="sd">          &quot;state&quot;: &quot;assigned&quot;,</span>
+<span class="sd">          &quot;prefix_length&quot;: 32,</span>
+<span class="sd">          &quot;attributes&quot;: {</span>
+<span class="sd">            &quot;desc&quot;: &quot;wlp2s0 on coxley-mbp&quot;</span>
+<span class="sd">          }</span>
+<span class="sd">        },</span>
+<span class="sd">        {</span>
+<span class="sd">          &quot;is_ip&quot;: true,</span>
+<span class="sd">          &quot;network_address&quot;: &quot;fe80::82e6:50ff:fe0d:fc2e&quot;,</span>
+<span class="sd">          &quot;site_id&quot;: 1,</span>
+<span class="sd">          &quot;state&quot;: &quot;assigned&quot;,</span>
+<span class="sd">          &quot;prefix_length&quot;: 128,</span>
+<span class="sd">          &quot;attributes&quot;: {</span>
+<span class="sd">            &quot;desc&quot;: &quot;wlp2s0 on coxley-mbp&quot;</span>
+<span class="sd">          }</span>
+<span class="sd">        }</span>
+<span class="sd">      ],</span>
+<span class="sd">      &quot;devices&quot;: [</span>
+<span class="sd">        {</span>
+<span class="sd">          &quot;attributes&quot;: {},</span>
+<span class="sd">          &quot;hostname&quot;: &quot;coxley-mbp&quot;</span>
+<span class="sd">        }</span>
+<span class="sd">      ]</span>
+<span class="sd">    }</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        click_ctx (click.Context): Click context</span>
+<span class="sd">        site_id (int): NSoT site id to perfom operations on</span>
+<span class="sd">        client (pynsot.EmailHeaderClient): via pynsot.client.get_api_client()</span>
+<span class="sd">        logger (Logger): logging.getLogger(__name__)</span>
+<span class="sd">        REQUIRED_ATTRS (list): If you&#39;re driver sets attributes, you can&#39;t</span>
+<span class="sd">            guarantee the remote end will have these set up. To get around</span>
+<span class="sd">            this, override the REQUIRED_ATTRS property. This should be a list</span>
+<span class="sd">            of NSoT attribute dicts. If you&#39;re not familiar with the format,</span>
+<span class="sd">            see the below examples:</span>
+
+<span class="sd">            &gt;&gt;&gt; REQUIRED_ATTRS = [</span>
+<span class="sd">                    {</span>
+<span class="sd">                        &#39;name&#39;: &#39;dc&#39;,</span>
+<span class="sd">                        &#39;resource_name&#39;: &#39;Device&#39;,</span>
+<span class="sd">                        &#39;description&#39;: &#39;Datacenter&#39;,</span>
+<span class="sd">                        &#39;display&#39;: True,</span>
+<span class="sd">                        &#39;required&#39;: True,</span>
+<span class="sd">                        &#39;multi&#39;: False,</span>
+<span class="sd">                    }</span>
+<span class="sd">                ]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        click_ctx (click.Context): Context from Click. Context.obj values are</span>
+<span class="sd">            manually set to share throughout the context at the entrypoint</span>
+<span class="sd">            functions. Any that need sharing are probably passed by the main</span>
+<span class="sd">            one (noop, site_id, etc) but when subclassing you know your driver</span>
+<span class="sd">            best</span>
+
+<span class="sd">            Also helps with doing CLI exits like click_ctx.fail(msg)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">REQUIRED_ATTRS</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">click_ctx</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="n">click_ctx</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Please pass click context to driver init&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span> <span class="o">=</span> <span class="n">click_ctx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">site_id</span> <span class="o">=</span> <span class="n">click_ctx</span><span class="o">.</span><span class="n">obj</span><span class="p">[</span><span class="s1">&#39;SITE_ID&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">get_api_client</span><span class="p">()</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">require_extra_attrs</span><span class="p">()</span>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="BaseDriver.get_resources"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.base_driver.BaseDriver.get_resources">[docs]</a>    <span class="k">def</span> <span class="nf">get_resources</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="BaseDriver.require_extra_attrs"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.base_driver.BaseDriver.require_extra_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">require_extra_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Appends EXTRA_ATTRS to REQUIRED_ATTRS so they&#39;re ensured</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            These come from the CLI args --[resource]-attrs</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">extra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span><span class="o">.</span><span class="n">obj</span><span class="p">[</span><span class="s1">&#39;EXTRA_ATTRS&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">rtype</span><span class="p">,</span> <span class="n">resources</span> <span class="ow">in</span> <span class="n">extra</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">rname</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">&#39;(?P&lt;resource&gt;\S+)_attrs&#39;</span><span class="p">,</span> <span class="n">rtype</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">resources</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">resource</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                    <span class="s1">&#39;resource_name&#39;</span><span class="p">:</span> <span class="n">rname</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span>
+                    <span class="s1">&#39;required&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">REQUIRED_ATTRS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resource</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseDriver.add_extra_attrs"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.base_driver.BaseDriver.add_extra_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">add_extra_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resources</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Updates resources with relevant extra attrs given at the CLI</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            This happens right before resources are either created or No-Op&#39;d</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            resources (dict): Resources as returned by self.get_resources</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">extra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span><span class="o">.</span><span class="n">obj</span><span class="p">[</span><span class="s1">&#39;EXTRA_ATTRS&#39;</span><span class="p">]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">resources</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Extra: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">extra</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">rtype</span><span class="p">,</span> <span class="n">attrs</span> <span class="ow">in</span> <span class="n">extra</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">rname_pl</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">s&#39;</span> <span class="o">%</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s1">&#39;(\S+)_attrs&#39;</span><span class="p">,</span> <span class="n">rtype</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">attrs</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="n">rname_pl</span><span class="p">]]</span>
+
+        <span class="k">return</span> <span class="n">r</span></div>
+
+<div class="viewcode-block" id="BaseDriver.noop"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.base_driver.BaseDriver.noop">[docs]</a>    <span class="k">def</span> <span class="nf">noop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Outputs JSON to STDOUT of the resources that would be created&#39;&#39;&#39;</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">merge_all</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="BaseDriver.merge_all"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.base_driver.BaseDriver.merge_all">[docs]</a>    <span class="k">def</span> <span class="nf">merge_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Merge all resources, adding extra attrs, for what will be created</span>
+
+<span class="sd">        This is useful for representing what exactly will be created and lets</span>
+<span class="sd">        .noop() be less redundant</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Same format as would be expected from .get_resources</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">from_driver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_resources</span><span class="p">()</span>
+        <span class="n">extra_attrs_added</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_extra_attrs</span><span class="p">(</span><span class="n">from_driver</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">extra_attrs_added</span></div>
+
+<div class="viewcode-block" id="BaseDriver.handle_resources"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.base_driver.BaseDriver.handle_resources">[docs]</a>    <span class="k">def</span> <span class="nf">handle_resources</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Takes output of .get_resources to create/update as needed&#39;&#39;&#39;</span>
+        <span class="n">resources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_all</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;All staged resources: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">resources</span><span class="p">)</span>
+
+        <span class="c1"># Create resources, interfaces last so networks and device exist to</span>
+        <span class="c1"># attach to</span>
+        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="n">resources</span><span class="p">[</span><span class="s1">&#39;devices&#39;</span><span class="p">]]</span>
+        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_network</span><span class="p">(</span><span class="n">network</span><span class="p">)</span> <span class="k">for</span> <span class="n">network</span> <span class="ow">in</span> <span class="n">resources</span><span class="p">[</span><span class="s1">&#39;networks&#39;</span><span class="p">]]</span>
+        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_interface</span><span class="p">(</span><span class="n">interface</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">interface</span> <span class="ow">in</span> <span class="n">resources</span><span class="p">[</span><span class="s1">&#39;interfaces&#39;</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="BaseDriver.handle_network"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.base_driver.BaseDriver.handle_network">[docs]</a>    <span class="k">def</span> <span class="nf">handle_network</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">network</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Take a single network and create/update in NSoT&#39;&#39;&#39;</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span>
+        <span class="n">cidr</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">network</span><span class="p">[</span><span class="s1">&#39;network_address&#39;</span><span class="p">],</span> <span class="n">network</span><span class="p">[</span><span class="s1">&#39;prefix_length&#39;</span><span class="p">])</span>
+        <span class="n">network</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;site_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_id</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Network: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">network</span><span class="p">)</span>
+        <span class="n">already_exists</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Test if existing network to determine whether to PATCH or POST</span>
+            <span class="c1"># Remove attributes since these may not match exactly and the point</span>
+            <span class="c1"># is to be updating them</span>
+            <span class="n">lookup</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">lookup</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;attributes&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Lookup metadata: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">lookup</span><span class="p">)</span>
+            <span class="n">existing</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">networks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="o">**</span><span class="n">lookup</span><span class="p">)[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;networks&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Existing networks: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">existing</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">existing</span><span class="p">:</span>
+                <span class="n">already_exists</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="n">ConnectionError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s1">&#39;Cannot connect to NSoT server&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">HttpClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handle_pynsot_err</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;handle_network, checking for existing net&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">already_exists</span><span class="p">:</span>
+            <span class="c1"># Set the proper ID to PATCH</span>
+            <span class="n">network</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">existing</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Patching: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">network</span><span class="p">)</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">networks</span><span class="o">.</span><span class="n">patch</span><span class="p">([</span><span class="n">network</span><span class="p">])</span>
+                <span class="n">success</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> updated!&#39;</span> <span class="o">%</span> <span class="n">cidr</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">ConnectionError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s1">&#39;Cannot connect to NSoT server&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">HttpClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">handle_pynsot_err</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">cidr</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;handle_network, patching network&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Posting: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">network</span><span class="p">)</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">networks</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+                <span class="n">success</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> created!&#39;</span> <span class="o">%</span> <span class="n">cidr</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">ConnectionError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s1">&#39;Cannot connect to NSoT server&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">HttpClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">handle_pynsot_err</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">cidr</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;handle_network, posting network&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseDriver.handle_interface"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.base_driver.BaseDriver.handle_interface">[docs]</a>    <span class="k">def</span> <span class="nf">handle_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interface</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Take a single interface and create/update in NSoT</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            As part of the driver contract, an interface passed here might have</span>
+<span class="sd">            &#39;device&#39; set to a hostname instead of the ID. Until NSoT supports</span>
+<span class="sd">            natural key references within a resource, we should detect and</span>
+<span class="sd">            fetch this</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">interface</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">interface</span><span class="p">[</span><span class="s1">&#39;device&#39;</span><span class="p">]</span>
+        <span class="n">interface</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;site_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_id</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Interface: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">interface</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">devices</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">hostname</span><span class="o">=</span><span class="n">interface</span><span class="p">[</span><span class="s1">&#39;device&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;total&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">interface</span><span class="p">[</span><span class="s1">&#39;device&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;devices&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">interface</span><span class="p">[</span><span class="s1">&#39;device&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">interface</span><span class="p">[</span><span class="s1">&#39;device&#39;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;handle_interface, setting device ID&#39;</span><span class="p">)</span>
+
+        <span class="n">already_exists</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Test if existing interface to determine whether to PATCH or POST</span>
+            <span class="c1"># Remove attributes since these may not match exactly and the point</span>
+            <span class="c1"># is to be updating them</span>
+            <span class="n">lookup</span> <span class="o">=</span> <span class="n">interface</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">lookup</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;attributes&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Lookup metadata: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">lookup</span><span class="p">)</span>
+            <span class="n">existing</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">interfaces</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="o">**</span><span class="n">lookup</span><span class="p">)[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;interfaces&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Existing interface: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">existing</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">existing</span><span class="p">:</span>
+                <span class="n">already_exists</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="n">ConnectionError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s1">&#39;Cannot connect to NSoT server&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">HttpClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handle_pynsot_err</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;handle_interface, checking for existing&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">already_exists</span><span class="p">:</span>
+            <span class="c1"># Set the proper ID to PATCH</span>
+            <span class="n">interface</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">existing</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Patching: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">interface</span><span class="p">)</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">interfaces</span><span class="o">.</span><span class="n">patch</span><span class="p">([</span><span class="n">interface</span><span class="p">])</span>
+                <span class="n">success</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1"> updated!&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+            <span class="k">except</span> <span class="n">ConnectionError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s1">&#39;Cannot connect to NSoT server&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">HttpClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">handle_pynsot_err</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;handle_interface, patching interface&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Posting: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">interface</span><span class="p">)</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">interfaces</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">interface</span><span class="p">)</span>
+                <span class="n">success</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1"> created!&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+            <span class="k">except</span> <span class="n">ConnectionError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s1">&#39;Cannot connect to NSoT server&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">HttpClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">handle_pynsot_err</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;handle_interface, posting interface&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseDriver.handle_device"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.base_driver.BaseDriver.handle_device">[docs]</a>    <span class="k">def</span> <span class="nf">handle_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Take a single device and create/update in NSoT&#39;&#39;&#39;</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span>
+        <span class="n">device</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;site_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_id</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Device&#39;</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+        <span class="n">already_exists</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">lookup</span> <span class="o">=</span> <span class="n">device</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">lookup</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;attributes&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Lookup metadata: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">lookup</span><span class="p">)</span>
+            <span class="n">existing</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">devices</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="o">**</span><span class="n">lookup</span><span class="p">)[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;devices&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Existing devices: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">existing</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">existing</span><span class="p">:</span>
+                <span class="n">already_exists</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">except</span> <span class="n">ConnectionError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s1">&#39;Cannot connect to NSoT server&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">HttpClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handle_pynsot_err</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;handle_device, checking for existing dev&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">already_exists</span><span class="p">:</span>
+            <span class="n">device</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">existing</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Patching: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">devices</span><span class="o">.</span><span class="n">patch</span><span class="p">([</span><span class="n">device</span><span class="p">])</span>
+                <span class="n">success</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> updated!&#39;</span> <span class="o">%</span> <span class="n">device</span><span class="p">[</span><span class="s1">&#39;hostname&#39;</span><span class="p">])</span>
+            <span class="k">except</span> <span class="n">ConnectionError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s1">&#39;Cannot connect to NSoT server&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">HttpClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">handle_pynsot_err</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">device</span><span class="p">[</span><span class="s1">&#39;hostname&#39;</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;handle_device, patching device&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Posting: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">devices</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">success</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> created!&#39;</span> <span class="o">%</span> <span class="n">device</span><span class="p">[</span><span class="s1">&#39;hostname&#39;</span><span class="p">])</span>
+            <span class="k">except</span> <span class="n">ConnectionError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s1">&#39;Cannot connect to NSoT server&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">HttpClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">handle_pynsot_err</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">device</span><span class="p">[</span><span class="s1">&#39;hostname&#39;</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;handle_device, posting device&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseDriver.ensure_attrs"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.base_driver.BaseDriver.ensure_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Ensure that attributes from REQUIRED_ATTRS exist, don&#39;t overwrite&#39;&#39;&#39;</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">REQUIRED_ATTRS</span><span class="p">:</span>
+            <span class="c1"># Loop through each attribute to create. Once #142 is fixed, this</span>
+            <span class="c1"># might be able to be done in bulk</span>
+            <span class="n">attr</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;site_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_id</span><span class="p">})</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">existing</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="o">**</span><span class="n">attr</span><span class="p">)[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+            <span class="k">except</span> <span class="n">ConnectionError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s1">&#39;Cannot connect to NSoT server&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">HttpClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">handle_pynsot_err</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;ensure_attrs, finding exist </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">attr</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">existing</span><span class="p">:</span>  <span class="c1"># Like in the docstring, don&#39;t overwrite</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Attribute </span><span class="si">%s</span><span class="s1"> exists, not overwriting&#39;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">attr</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Posting attribute </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">attr</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+                    <span class="n">c</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+                    <span class="n">success</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> created!&#39;</span> <span class="o">%</span> <span class="n">attr</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+            <span class="k">except</span> <span class="n">ConnectionError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">click_ctx</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s1">&#39;Cannot connect to NSoT server&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">HttpClientError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">handle_pynsot_err</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;ensure_attrs, posting attr </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">attr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseDriver.handle_pynsot_err"><a class="viewcode-back" href="../../../source/nsot_sync.drivers.html#nsot_sync.drivers.base_driver.BaseDriver.handle_pynsot_err">[docs]</a>    <span class="k">def</span> <span class="nf">handle_pynsot_err</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">base_net</span> <span class="o">=</span> <span class="s2">&quot;IP Address needs base network&quot;</span>
+        <span class="k">if</span> <span class="n">base_net</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">content</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: No base network created for relevant resource&#39;</span><span class="p">,</span>
+                <span class="n">desc</span>
+            <span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">desc</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+        <span class="c1"># error(content)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">content</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Codey Oxley.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.4.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
