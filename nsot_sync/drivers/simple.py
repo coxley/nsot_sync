@@ -21,6 +21,9 @@ class SimpleDriver(BaseDriver):
         INTF_IGNORE_PREFIXES (list): Ignore interfaces.startswith(i)
         INTF_OK_FAMILIES (list): Only add addresses from these address families
 
+    Options:
+        limit_intfs (list): Limit interfaces to these if specified.
+        ignore_intfs (list): Ignore interfaces starting with these strings
     '''
 
     REQUIRED_ATTRS = [
@@ -57,6 +60,14 @@ class SimpleDriver(BaseDriver):
         netifaces.AF_LINK,
     ]
 
+    def __init__(self, limit_intfs=[], ignore_intfs=[], *args, **kwargs):
+        super(SimpleDriver, self).__init__(*args, **kwargs)
+        self.limit_intfs = limit_intfs
+
+        # Just override the existing if these are provided
+        if ignore_intfs:
+            self.INTF_IGNORE_PREFIXES = ignore_intfs
+
     def get_resources(self):
         '''Returns resources to create
 
@@ -79,12 +90,16 @@ class SimpleDriver(BaseDriver):
             dict: {'interfaces': interfaces, 'networks': networks}
         '''
         self.logger.debug('Grabbing interfaces from netifaces')
-        prospects = [intf for intf in netifaces.interfaces()
-                     if not intf.startswith(tuple(self.INTF_IGNORE_PREFIXES))]
-
         networks = []
         interfaces = []
-        for intf in prospects:
+        ignore = self.INTF_IGNORE_PREFIXES
+        for intf in netifaces.interfaces():
+            if self.limit_intfs and intf not in self.limit_intfs:
+                # Move along if not in limit list, should it be provided
+                continue
+            if not self.limit_intfs and intf.startswith(tuple(ignore)):
+                # If not limiting, ignore the ignore prefixes
+                continue
             # This loop is a bit weird, but an interface can have many
             # addresses of many address families.
             #
