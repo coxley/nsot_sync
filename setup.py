@@ -24,6 +24,7 @@ setup(
     ],
     extras_require={
         'docs': ['sphinx', 'sphinx-autobuild', 'sphinx-rtd-theme'],
+        'tests': ['pytest'],
     },
     tests_require=['pytest'],
     setup_requires=['pytest-runner'],
