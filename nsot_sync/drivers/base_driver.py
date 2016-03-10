@@ -103,9 +103,11 @@ class BaseDriver(object):
         if click_ctx is None:
             raise Exception('Please pass click context to driver init')
 
+        c = get_api_client()
+
         self.click_ctx = click_ctx
         self.site_id = click_ctx.obj['SITE_ID']
-        self.client = get_api_client()
+        self.client = c.sites(self.site_id)
         logger = logging.getLogger(__name__)
         self.logger = logger
 
@@ -172,6 +174,7 @@ class BaseDriver(object):
         '''Takes output of .get_resources to create/update as needed'''
         resources = self.merge_all()
         self.logger.debug('All staged resources: %s', resources)
+        self.ensure_attrs()
 
         # Create resources, interfaces last so networks and device exist to
         # attach to
@@ -365,11 +368,11 @@ class BaseDriver(object):
             try:
                 if existing:  # Like in the docstring, don't overwrite
                     msg = 'Attribute %s exists, not overwriting'
-                    self.logger.info(msg, attr['name'])
+                    self.logger.debug(msg, attr['name'])
                 else:
-                    self.logger.info('Posting attribute %s', attr['name'])
+                    self.logger.info('Creating attribute %s', attr['name'])
                     c.attributes.post(attr)
-                    success('%s created!' % attr['name'])
+                    self.logger.info('%s created!' % attr['name'])
             except ConnectionError:
                 self.click_ctx.fail('Cannot connect to NSoT server')
             except HttpClientError as e:
