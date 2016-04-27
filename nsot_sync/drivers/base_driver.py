@@ -197,8 +197,8 @@ class BaseDriver(object):
             # is to be updating them
             lookup = network.copy()
             lookup.pop('attributes', None)
-            self.logger.debug('Lookup metadata: %s', lookup)
-            existing = c.networks.get(**lookup)['data']['networks']
+            self.logger.debug('Lookup kwargs: %s', lookup)
+            existing = c.networks.get(**lookup)
             self.logger.debug('Existing networks: %s', existing)
             if existing:
                 already_exists = True
@@ -250,10 +250,10 @@ class BaseDriver(object):
         self.logger.debug('Interface: %s', interface)
         try:
             result = c.devices.get(hostname=interface['device'])
-            if result['data']['total'] == 0:
+            if not result or 'count' in result and result['count'] == 0:
                 raise ValueError
             else:
-                interface['device'] = result['data']['devices'][0]['id']
+                interface['device'] = result[0]['id']
         except ValueError:
             interface['device'] = int(interface['device'])
         except Exception as e:
@@ -266,8 +266,8 @@ class BaseDriver(object):
             # is to be updating them
             lookup = interface.copy()
             lookup.pop('attributes', None)
-            self.logger.debug('Lookup metadata: %s', lookup)
-            existing = c.interfaces.get(**lookup)['data']['interfaces']
+            self.logger.debug('Lookup kwargs: %s', lookup)
+            existing = c.interfaces.get(**lookup)
             self.logger.debug('Existing interface: %s', existing)
             if existing:
                 already_exists = True
@@ -313,8 +313,8 @@ class BaseDriver(object):
         try:
             lookup = device.copy()
             lookup.pop('attributes', None)
-            self.logger.debug('Lookup metadata: %s', lookup)
-            existing = c.devices.get(**lookup)['data']['devices']
+            self.logger.debug('Lookup kwargs: %s', lookup)
+            existing = c.devices.get(**lookup)
             self.logger.debug('Existing devices: %s', existing)
             if existing:
                 already_exists = True
@@ -357,7 +357,7 @@ class BaseDriver(object):
             # might be able to be done in bulk
             attr.update({'site_id': self.site_id})
             try:
-                existing = c.attributes.get(**attr)['data']['attributes']
+                existing = c.attributes.get(**attr)
             except ConnectionError:
                 self.click_ctx.fail('Cannot connect to NSoT server')
             except HttpClientError as e:

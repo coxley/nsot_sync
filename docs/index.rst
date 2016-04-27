@@ -11,7 +11,7 @@ NSoT Sync is a program to help automate adding and updating resources in
 the running computer's networks, interfaces, and self but a WIP for syncing
 from Solarwinds IPAM and SNMP is on the way.
 
-.. _NSoT: https://github.com/dropbox/nsot
+.. _NSoT: https://nsot.readthedocs.org
 
 Motivations
 -----------
@@ -38,7 +38,7 @@ being said, we don't have any Windows systems to test on so there might be some
 bugs there. If you run across one, please `submit an issue`_!
 
 .. _submit an issue: https://github.com/coxley/nsot_sync/issues/new
-.. _pynsot docs: https://github.com/dropbox/pynsot
+.. _pynsot docs: https://pynsot.readthedocs.org
 
 Quickstart
 ----------
