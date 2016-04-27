@@ -255,7 +255,8 @@ class BaseDriver(object):
             else:
                 interface['device'] = result[0]['id']
         except ValueError:
-            interface['device'] = int(interface['device'])
+            # interface['device'] = int(interface['device'])
+            interface['device'] = interface['device']
         except Exception as e:
             self.logger.exception('handle_interface, setting device ID')
 
