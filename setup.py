@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-VERSION = '0.5'
+VERSION = '0.5.1'
 
 setup(
     name='nsot_sync',
@@ -17,7 +17,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'pynsot==0.22.2',
+        'pynsot==1.0',
         'netifaces==0.10.4',
         'coloredlogs==5.0',
     ],
